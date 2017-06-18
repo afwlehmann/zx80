@@ -1,0 +1,26 @@
+            org $8000
+
+config_udg  equ $5c7b ; Address of first user defined graphic
+opench      equ $1601
+
+udg:        db %00000000
+            db %00011000
+            db %00111100
+            db %01111110
+            db %01111110
+            db %00111100
+            db %00011000
+            db %00000000
+
+start:
+            ld hl, udg
+            ld (config_udg), hl
+
+            ld a, 2
+            call opench
+
+            ld a, 144
+            rst 16
+
+            ret
+end start
