@@ -9,6 +9,9 @@ checkers.bin:	checkers.z80
 udg.bin:	udg.z80
 		pasmo --tapbas udg.z80 udg.bin
 
+README.html:	README.md
+		pandoc -s -o README.html README.md
+
 .PHONY:	clean
 clean:
-		@rm -f *.bin
+		@rm -f *.bin README.html
