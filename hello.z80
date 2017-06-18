@@ -1,0 +1,23 @@
+org     $8000
+
+cls     equ $0D6B   ; define some ROM routines
+opench  equ $1601
+print   equ $203C
+
+string:
+        db 'Hello world!', 13
+
+start:
+        call   cls         ; clear screen
+
+        ld     a, 2        ; open upper screen channel
+        call   opench
+
+        ld     de, string
+        ld     bc, 13
+        call   print
+
+        ret
+end start
+
+; vim:set ts=4 sw=4 expandtab:
