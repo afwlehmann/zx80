@@ -1,10 +1,14 @@
         org $8000
 
-video   equ $4000   ; some useful locations in memory
+video   equ $4000       ; some useful locations in memory
 colors  equ $5800
+bordcr  equ $5c48
 
 start:
-        ld hl, colors
+        ld a, 2         ; set the border to red w/o updating bordcr
+        out ($fe), a
+
+        ld hl, colors   ; checkers by modifing paper and ink
         ld a, 12
 
 outer:  ld b, 16
