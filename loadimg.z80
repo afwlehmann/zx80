@@ -1,0 +1,17 @@
+            org $8000
+
+VIDEO       equ $4000
+
+start
+            ld hl, img
+            ld de, VIDEO
+            ld bc, 6144
+            ldir
+
+            ret
+
+img:        incbin "hobbit.scr"
+
+end start
+
+; vim: set ts=4 sw=4 expandtab:

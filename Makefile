@@ -1,4 +1,4 @@
-all:	hello.bin checkers.bin udg.bin chapter2.bin
+all:	hello.bin checkers.bin udg.bin chapter2.bin loadimg.bin
 
 hello.bin:	hello.z80
 		pasmo --tapbas hello.z80 hello.bin
@@ -11,6 +11,9 @@ udg.bin:	udg.z80
 
 chapter2.bin:	chapter2.z80
 		pasmo --tapbas chapter2.z80 chapter2.bin
+
+loadimg.bin:	loadimg.z80
+		pasmo --tapbas loadimg.z80 loadimg.bin
 
 README.html:	README.md
 		pandoc -s -o README.html README.md
