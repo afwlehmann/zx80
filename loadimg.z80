@@ -5,7 +5,7 @@ VIDEO       equ $4000
 start
             ld hl, img
             ld de, VIDEO
-            ld bc, 6144
+            ld bc, 32*24*8 + 32*24  ; pixels + attributes
             ldir
 
             ret
