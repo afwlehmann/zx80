@@ -1,0 +1,63 @@
+            org $8000
+
+VIDEO       equ $4000
+
+start
+            call setpixel
+
+            ld a, 2
+            ld (x), a
+            call setpixel
+
+            ld a, 5
+            ld (x), a
+            call setpixel
+
+            ld a, 9
+            ld (x), a
+            call setpixel
+
+            ld a, 14
+            ld (x), a
+            call setpixel
+
+            ret
+
+; set the pixel at (x, y)
+setpixel:
+            ld hl, VIDEO
+
+            ; compute the character offset as a / 8
+            ld a, (x)           ; TODO: no need to do something if (x) == 0
+            sra a
+            sra a
+            sra a
+            add a, l
+            ld l, a             ; advance l so that hl points to the right address
+
+            ; compute the offset within the character as a mod 8
+            ld a, (x)           ; TODO: avoid reading (x) twice
+            ld b, 7
+            and b
+            ld b, a             ; b = a mod 8
+
+            inc b
+            xor a               ; a = 0
+            scf
+.sploop:    rra                 ; TODO: use LUT to speed this up
+            djnz .sploop
+
+            ; draw the pixel
+            ld b, a
+            ld a, (hl)
+            or b
+            ld (hl), a
+
+            ret
+
+x:          defb 0
+y:          defb 0
+
+end start
+
+; vim: set ts=4 sw=4 expandtab:
