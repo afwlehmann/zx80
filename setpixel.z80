@@ -27,19 +27,51 @@ start
 setpixel:
             ld hl, VIDEO
 
-            ; compute the character offset as a / 8
+            ; -- y-coordinate --
+
+            ; 010BBSSS LLLCCCCC
+            ; BBLL LSSS
+
+            ld a, (y)
+            sra a
+            sra a
+            sra a
+            ld b, %00011000
+            and b               ; a = 000BB000
+            add a, h
+            ld h, a
+
+            ld a, (y)
+            sla a
+            sla a
+            ld b, %11000000
+            and b               ; a = LLL00000
+            add a, l
+            ld l, a
+
+            ld a, (y)
+            ld b, %00000111
+            and b               ; a = 00000SSS
+            add a, h
+            ld h, a
+
+            ; -- x-coordinate --
+
+            ; compute the character offset as x / 8
             ld a, (x)           ; TODO: no need to do something if (x) == 0
             sra a
             sra a
             sra a
+            ld b, %00011111
+            and b
             add a, l
             ld l, a             ; advance l so that hl points to the right address
 
-            ; compute the offset within the character as a mod 8
+            ; compute the offset within the character as x mod 8
             ld a, (x)           ; TODO: avoid reading (x) twice
             ld b, 7
             and b
-            ld b, a             ; b = a mod 8
+            ld b, a             ; b = x mod 8
 
             inc b
             xor a               ; a = 0
@@ -56,7 +88,7 @@ setpixel:
             ret
 
 x:          defb 0
-y:          defb 0
+y:          defb 170
 
 end start
 

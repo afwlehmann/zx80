@@ -1,4 +1,4 @@
-all:	hello.bin checkers.bin udg.bin chapter2.bin lines.bin loadimg.bin
+all:	hello.bin checkers.bin udg.bin chapter2.bin setpixel.bin loadimg.bin
 
 hello.bin:	hello.z80
 		pasmo --tapbas hello.z80 hello.bin
@@ -15,8 +15,8 @@ chapter2.bin:	chapter2.z80
 loadimg.bin:	loadimg.z80
 		pasmo --tapbas loadimg.z80 loadimg.bin
 
-lines.bin:	lines.z80
-		pasmo --tapbas lines.z80 lines.bin
+setpixel.bin:	setpixel.z80
+		pasmo --tapbas setpixel.z80 setpixel.bin
 
 README.html:	README.md
 		pandoc -s -o README.html README.md
