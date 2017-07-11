@@ -24,6 +24,8 @@ start
             ret
 
 ; set the pixel at (x, y)
+; TODO: - Avoid redundant memory reads
+;       - Keep register b and c untouched (don't break callers' loops)
 setpixel:
             ld hl, VIDEO
 
@@ -32,7 +34,7 @@ setpixel:
             ; 010BBSSS LLLCCCCC
             ; BBLL LSSS
 
-            ld a, (y)
+            ld a, (y)           ; TODO: no need to do something if (y) == 0
             sra a
             sra a
             sra a
@@ -65,10 +67,10 @@ setpixel:
             ld b, %00011111
             and b
             add a, l
-            ld l, a             ; advance l so that hl points to the right address
+            ld l, a
 
             ; compute the offset within the character as x mod 8
-            ld a, (x)           ; TODO: avoid reading (x) twice
+            ld a, (x)
             ld b, 7
             and b
             ld b, a             ; b = x mod 8
@@ -76,7 +78,7 @@ setpixel:
             inc b
             xor a               ; a = 0
             scf
-.sploop:    rra                 ; TODO: use LUT to speed this up
+.sploop:    rra                 ; TODO: use a LUT to speed this up
             djnz .sploop
 
             ; draw the pixel
