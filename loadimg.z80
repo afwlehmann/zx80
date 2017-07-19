@@ -10,7 +10,7 @@ start
 
             ret
 
-img:        incbin "hobbit.scr"
+img:        incbin "images/hobbit.scr"
 
 end start
 

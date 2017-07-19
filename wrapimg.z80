@@ -129,7 +129,7 @@ wraprow:
 
             ret
 
-img:        incbin "bravestarr.scr"
+img:        incbin "images/bravestarr.scr"
 linebuf:    ds 32
 end start
 
