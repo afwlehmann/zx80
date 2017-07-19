@@ -1,0 +1,136 @@
+            org $8000
+
+VIDEO       equ $4000
+
+start
+            call loadimg
+.loop:      call wraprow
+            halt
+            jp .loop
+            ret
+
+loadimg:
+            ld hl, img
+            ld de, VIDEO
+            ld bc, 32*24*8 ;+ 32*24  ; pixels + attributes
+            ldir
+            ret
+
+; copies the first line of the screen to a buffer, scrolls up the
+; screen by 1 pixel, then copies the buffer to the last line of
+; the screen
+wraprow:
+            ; copy first line to `linebuf`
+            ld hl, VIDEO
+            ld de, linebuf
+            ld bc, 32
+            ldir
+
+            ; 16 bit address layout of the screen (256x192 pixels)
+            ;
+            ; 0000 0000 0000 0000
+            ; 010B BLLL RRRC CCCC
+            ;
+            ; LLL   = line in character block
+            ; CCCCC = character in character row
+            ; RRR   = character row in block
+            ; BB    = block (only 00, 01, 10)
+
+            ; scroll up the screen by 1 pixel
+            ld hl, VIDEO
+            inc h                   ; hl points to second line
+            ld de, VIDEO            ; de points to first line
+
+            ld c, 191
+
+.shiftline: ld b, 31
+.copy:      ld a, (hl)              ; copy first 31 byte in a loop
+            ld (de), a
+            inc l
+            inc e
+            djnz .copy
+            ld a, (hl)              ; copy last byte manually to avoid overflow of lower into higher bits
+            ld (de), a
+
+            ld a, l                 ; reset hl and de to beginning of line
+            sub 31
+            ld l, a
+
+            ld a, e
+            sub 31
+            ld e, a
+
+.nexthl:    ld a, h                 ; check if max line in character row
+            and 7
+            cp 7
+            jp z, .advhlrow
+
+            inc h                   ; increase line in character row
+            jp .nextde
+
+.advhlrow:  ld a, h                 ; reset hl to first line in character row
+            sub 7
+            ld h, a
+
+            ld a, l                 ; check if max character row in block
+            and %11100000
+            cp %11100000
+            jp z, .advhlblk
+
+            ld a, l                 ; increase character row in block
+            add a, 32
+            ld l, a
+            jp .nextde
+
+.advhlblk:  ld a, l                 ; reset hl to first character row in block
+            and %00011111
+            ld l, a
+            ld a, h                 ; increase block
+            add a, 8
+            ld h, a
+
+.nextde:    ld a, d                 ; check if max line in character row
+            and 7
+            cp 7
+            jp z, .advderow
+
+            inc d                   ; increase line in character row
+            jp .cont
+
+.advderow:  ld a, d                 ; reset de to first line in character row
+            sub 7
+            ld d, a
+
+            ld a, e                 ; check if max character row in block
+            and %11100000
+            cp %11100000
+            jp z, .advdeblk
+
+            ld a, e                 ; increase character row in block
+            add a, 32
+            ld e, a
+            jp .cont
+
+.advdeblk:  ld a, e                 ; reset de to first character row in block
+            and %00011111
+            ld e, a
+            ld a, d                 ; increase block
+            add a, 8
+            ld d, a
+
+.cont:      dec c                   ; continue until no lines left
+            jp nz, .shiftline
+
+.restore:   ; copy `linebuf` to last line
+            ld hl, linebuf
+            ld de, %0101011111100000
+            ld bc, 32
+            ldir
+
+            ret
+
+img:        incbin "bravestarr.scr"
+linebuf:    ds 32
+end start
+
+; vim: set ts=4 sw=4 tw=100 expandtab:
