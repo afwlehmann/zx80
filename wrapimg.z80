@@ -7,7 +7,6 @@ start
 .loop:      call wraprow
             halt
             jp .loop
-            ret
 
 loadimg:
             ld hl, img
@@ -72,15 +71,10 @@ wraprow:
             sub 7
             ld h, a
 
-            ld a, l                 ; check if max character row in block
-            and %11100000
-            cp %11100000
-            jp z, .advhlblk
-
-            ld a, l                 ; increase character row in block
+            ld a, l                 ; increase character row until max character row in block
             add a, 32
             ld l, a
-            jp .nextde
+            jp nc, .nextde
 
 .advhlblk:  ld a, l                 ; reset hl to first character row in block
             and %00011111
@@ -101,15 +95,10 @@ wraprow:
             sub 7
             ld d, a
 
-            ld a, e                 ; check if max character row in block
-            and %11100000
-            cp %11100000
-            jp z, .advdeblk
-
-            ld a, e                 ; increase character row in block
+            ld a, e                 ; increase character row until max character row in block
             add a, 32
             ld e, a
-            jp .cont
+            jp nc, .cont
 
 .advdeblk:  ld a, e                 ; reset de to first character row in block
             and %00011111
