@@ -1,6 +1,6 @@
-# Z80 Playground
+# ZX80 Playground
 
-This is merely a playground for Z80 assembly. For the time being, [`pasmo`][1] is
+This is merely a playground for ZX80 assembly. For the time being, [`pasmo`][1] is
 used to assemble the sources and [`fuse`][2] to run them.
 
 ## Images
