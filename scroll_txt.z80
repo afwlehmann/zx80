@@ -1,0 +1,141 @@
+            org $8000
+
+
+VIDEO       equ $4000
+CHARS       equ $5C36
+
+
+start
+            call setup_charset
+            call cls
+
+main_loop:
+            halt
+            call scroll_row
+            jr main_loop
+
+; read the location of the character set from the system variable
+setup_charset:
+            ld hl, (CHARS)
+            ld (charset), hl
+            ret
+
+; hl = address of the first byte of the character given in a
+char_addr:
+            ld h, 0
+            and a                   ; clear carry
+            rla                     ; multiply hl by 8
+            rl h
+            rla
+            rl h
+            rla
+            rl h
+            ld l, a
+            ld bc, (charset)        ; add start of character set
+            add hl, bc
+            ret
+
+cls:
+            di                      ; disable interrupts so that sp doesn't get messed up
+            ld (.cls_sp + 1), sp    ; store current stack pointer as operand to `ld sp, 0` below
+            ld hl, 0
+            ld sp, VIDEO + 32*24*8
+            ld c, 3                 ; 3 * 256 * 8 = 32 * 24 * 8
+.cls1:
+            ld b, l                 ; copy 256 * 8 bytes
+.cls2:
+            push hl
+            push hl
+            push hl
+            push hl
+            djnz .cls2
+            dec c
+            jr nz, .cls1
+.cls_sp:
+            ld sp, 0
+            ei                      ; re-enable interrupts
+            ret
+
+; scrolls the first character row about 1 pixel to the left
+scroll_row:
+            ld a, (xpos)
+            inc a
+            ld (xpos), a
+            and 7                   ; check if xpos is divisible by 8
+            jr nz, .proceed         ; if not, don't bother
+
+            ld hl, (next_char)      ; load address of next character
+            push hl
+
+            ld a, (hl)              ; read next character
+            call char_addr          ; and determine its address in the character map
+
+            ld de, curr_char        ; copy the character's bytes to curr_char
+            ld b, 8
+.sl0:
+            ld a, (hl)
+            ld (de), a
+            inc hl
+            inc de
+            djnz .sl0
+
+            pop hl                  ; see if we've already reached the last character
+            ld a, high(msg_end)
+            cp h
+            jr nz, .inc_next_char
+            ld a, low(msg_end)
+            cp l
+            jr nz, .inc_next_char
+
+.start_over:
+            ld hl, message          ; start over with first character
+            ld (next_char), hl
+            jr .proceed
+
+.inc_next_char:
+            inc hl                  ; advance to next character
+            ld (next_char), hl
+
+.proceed:
+            ld hl, VIDEO + 31
+            ld c, 8
+            ld de, curr_char
+.sl:
+            ld b, 31
+
+            ld a, (de)              ; initialize carry with rotated byte from current character
+            rla
+            ld (de), a
+.sl1:
+            ld a, (hl)
+            rla
+            ld (hl), a
+            dec l
+            djnz .sl1
+            ld a, (hl)              ; do the last one manually to avoid underflow of l
+            rla
+            ld (hl), a
+
+            inc de                  ; advance to next byte from current character
+
+            inc h                   ; advance to next pixel line
+            ld a, 31
+            add a, l
+            ld l, a
+            dec c
+            jr nz, .sl
+
+            ret
+
+
+charset:    dw 0                    ; address of the character set in the ROM
+message:    db "Hello world! This is my first sideways text-scroller for the Speccy."
+msg_end:    equ $
+
+next_char:  dw message              ; address of the next character to be scrolled in
+curr_char:  ds 8                    ; the bytes of the character which is currently scrolling in
+xpos:       db 7                    ; the horizontal position within the current character (0-7)
+
+end start
+
+; vim: set ts=4 sw=4 tw=100 expandtab:
