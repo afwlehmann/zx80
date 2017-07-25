@@ -4,14 +4,14 @@ VIDEO       equ $4000
 
 start
             call loadimg
-.loop:      call wraprow
-            halt
-            jp .loop
+.loop:      halt
+            call wraprow
+            jr .loop
 
 loadimg:
             ld hl, img
             ld de, VIDEO
-            ld bc, 32*24*8 ;+ 32*24  ; pixels + attributes
+            ld bc, 32*24*8          ; only pixels, no attributes
             ldir
             ret
 
@@ -36,8 +36,7 @@ wraprow:
             ; BB    = block (only 00, 01, 10)
 
             ; scroll up the screen by 1 pixel
-            ld hl, VIDEO
-            inc h                   ; hl points to second line
+            ld hl, VIDEO + 256      ; hl points to second line
             ld de, VIDEO            ; de points to first line
 
             ld c, 191
@@ -52,20 +51,20 @@ wraprow:
             ld (de), a
 
             ld a, l                 ; reset hl and de to beginning of line
-            sub 31
+            and %11100000
             ld l, a
 
             ld a, e
-            sub 31
+            and %11100000
             ld e, a
 
 .nexthl:    ld a, h                 ; check if max line in character row
             and 7
             cp 7
-            jp z, .advhlrow
+            jr z, .advhlrow
 
             inc h                   ; increase line in character row
-            jp .nextde
+            jr .nextde
 
 .advhlrow:  ld a, h                 ; reset hl to first line in character row
             sub 7
@@ -74,7 +73,7 @@ wraprow:
             ld a, l                 ; increase character row until max character row in block
             add a, 32
             ld l, a
-            jp nc, .nextde
+            jr nc, .nextde
 
 .advhlblk:  ld a, l                 ; reset hl to first character row in block
             and %00011111
@@ -86,10 +85,10 @@ wraprow:
 .nextde:    ld a, d                 ; check if max line in character row
             and 7
             cp 7
-            jp z, .advderow
+            jr z, .advderow
 
             inc d                   ; increase line in character row
-            jp .cont
+            jr .cont
 
 .advderow:  ld a, d                 ; reset de to first line in character row
             sub 7
@@ -98,7 +97,7 @@ wraprow:
             ld a, e                 ; increase character row until max character row in block
             add a, 32
             ld e, a
-            jp nc, .cont
+            jr nc, .cont
 
 .advdeblk:  ld a, e                 ; reset de to first character row in block
             and %00011111
@@ -108,7 +107,7 @@ wraprow:
             ld d, a
 
 .cont:      dec c                   ; continue until no lines left
-            jp nz, .shiftline
+            jr nz, .shiftline
 
 .restore:   ; copy `linebuf` to last line
             ld hl, linebuf
